@@ -62,7 +62,7 @@ jobs:
         - name: Install dependencies
           run: npm install
         
-        - name: Code Coverage
+        - name: Check Code Coverage
           run: npm run coverage
         
         - name: Archive Code Coverage
