@@ -27,7 +27,7 @@ jobs:
         runs-on: ${{ matrix.operating-system }}
         steps:
         - name: Checkout code
-          uses: actions/checkout@v2
+          uses: actions/checkout@v4
     
         - name: Set up Node.js - ${{ matrix.nodejs-version }}
           uses: actions/setup-node@v3
@@ -45,3 +45,29 @@ jobs:
           with:
             name: Mocha-Test-Result
             path: test-results.xml
+    
+    code-coverage:
+        name: Code Coverage
+        runs-on: ubuntu-latest
+        needs: unit-testing
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+    
+        - name: Set up Node.js - 18
+          uses: actions/setup-node@v3
+          with:
+            node-version: '18'
+        
+        - name: Install dependencies
+          run: npm install
+        
+        - name: Code Coverage
+          run: npm run coverage
+        
+        - name: Archive Code Coverage
+          uses: actions/upload-artifact@v3
+          with:
+            name: Code-Coverage-Report
+            path: coverage
+            retention-days: 5
