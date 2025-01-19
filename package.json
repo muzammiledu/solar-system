@@ -24,5 +24,8 @@
     "chai": "*",
     "chai-http": "*",
     "mocha": "*"
+  },
+  "validatorDependencies": {
+    "express-validator": "^6.12.2"
   }
 }
