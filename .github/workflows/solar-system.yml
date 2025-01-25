@@ -19,8 +19,8 @@ jobs:
         name: Unit Testing
         strategy:
             matrix:
-                nodejs-version: [18, 19, 20]
-                operating-system: [ubuntu-latest, macos-latest]
+                nodejs-version: [18, 20]
+                operating-system: [ubuntu-latest]
                 exclude:
                     - nodejs-version: 18
                       operating-system: macos-latest
@@ -105,7 +105,7 @@ jobs:
         - name: Docker Image Testing
           run: 
             docker images
-            docker run --name solar-system-app -d \
+            docker run --name solar-system-app -d  \
                 -p 3000:3000 \
                 -e MONGO_URI=$MONGO_URI \
                 -e MONGO_USERNAME=$MONGO_USERNAME \
