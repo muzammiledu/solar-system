@@ -84,7 +84,7 @@ jobs:
             path: coverage
     Docker: 
       name: Docker Image
-      needs: [unit-testing]
+      needs: [code-coverage, unit-testing]
       runs-on: ubuntu-latest
       steps:
         - name: Checkout Repo
