@@ -17,28 +17,21 @@ env:
 jobs:
     unit-testing:
         name: Unit Testing
-        strategy:
-            matrix:
-                nodejs-version: [18, 20]
-                operating-system: [ubuntu-latest]
-                exclude:
-                    - nodejs-version: 18
-                      operating-system: macos-latest
-        runs-on: ${{ matrix.operating-system }}
+        runs-on: ubuntu-latest
         steps:
         - name: Checkout code
           uses: actions/checkout@v4
     
-        - name: Set up Node.js - ${{ matrix.nodejs-version }}
+        - name: Set up Node.js - 20
           uses: actions/setup-node@v3
           with:
-            node-version: ${{ matrix.nodejs-version }}
+            node-version: 20
         
         - name: Cache NPM Dependencies
           uses: actions/cache@v4
           with:
             path: node_modules
-            key: ${{ runner.os }}-node-${{ matrix.nodejs-version }}-${{ hashFiles('**/package-lock.json') }}
+            key: ${{ runner.os }}-node-20-${{ hashFiles('**/package-lock.json') }}
         
         - name: Install dependencies
           run: npm install
@@ -59,16 +52,16 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v4
     
-        - name: Set up Node.js - 18
+        - name: Set up Node.js - 20
           uses: actions/setup-node@v3
           with:
-            node-version: '18'
+            node-version: 20
         
         - name: Cache NPM Dependencies
           uses: actions/cache@v4
           with:
             path: node_modules
-            key: ${{ runner.os }}-node-${{ matrix.nodejs-version }}-${{ hashFiles('**/package-lock.json') }}
+            key: ${{ runner.os }}-node-20-${{ hashFiles('**/package-lock.json') }}
         
         - name: Install dependencies
           run: npm install
@@ -103,7 +96,7 @@ jobs:
             tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
 
         - name: Docker Image Testing
-          run: 
+          run: |
             docker images
             docker run --name solar-system-app -d  \
                 -p 3000:3000 \
