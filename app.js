@@ -38,20 +38,17 @@ var planetModel = mongoose.model('planets', dataSchema);
 
 app.post('/planet', 
     body('id').isInt({ min: 0, max: 9 }).withMessage('ID must be an integer between 0 and 9'),
-    function(req, res) {
+    async function(req, res) {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
-        planetModel.findOne({
-            id: req.body.id
-        }, function(err, planetData) {
-            if (err) {
-                res.status(500).send("Error in Planet Data");
-            } else {
-                res.send(planetData);
-            }
-        });
+        try {
+            const planetData = await planetModel.findOne({ id: req.body.id });
+            res.send(planetData);
+        } catch (err) {
+            res.status(500).send("Error in Planet Data");
+        }
     }
 );
 
