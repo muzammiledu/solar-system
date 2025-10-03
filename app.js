@@ -1,3 +1,4 @@
+require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const OS = require('os');
@@ -11,18 +12,19 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '/')));
 app.use(cors());
 
-mongoose.connect(process.env.MONGO_URI, {
-    user: process.env.MONGO_USERNAME,
-    pass: process.env.MONGO_PASSWORD,
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}, function(err) {
-    if (err) {
+(async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI, {
+            user: process.env.MONGO_USERNAME,
+            pass: process.env.MONGO_PASSWORD,
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        // console.log("MongoDB Connection Successful");
+    } catch (err) {
         console.log("error!! " + err);
-    } else {
-      //  console.log("MongoDB Connection Successful");
     }
-});
+})();
 
 var Schema = mongoose.Schema;
 
