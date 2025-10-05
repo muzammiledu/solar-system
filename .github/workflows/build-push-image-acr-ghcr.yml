@@ -11,6 +11,12 @@ on:
         type: choice
         options: [acr, ghcr]
 
+      acr_name:
+        description: Azure Container Registry name (only used if registry_type=acr)
+        required: false
+        default: ""
+        type: string
+
       environment:
         description: Deployment environment
         required: true
@@ -36,14 +42,13 @@ permissions:
   packages: write
 
 env:
-  APP_CODE: "muzpoc"
   ARM_CLIENT_ID: ${{ secrets.LZ_SPN_APP_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.LZ_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.LZ_TENANT_ID }}
 
 jobs:
   build-push:
-    runs-on: [pda-self-hosted-linux]
+    runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
 
     steps:
@@ -66,8 +71,11 @@ jobs:
           echo "IMAGE_TAG=${{ github.event.inputs.image_tag }}" >> $GITHUB_ENV
 
           if [ "${{ github.event.inputs.registry_type }}" == "acr" ]; then
-            ACR_NAME="acr${{ env.APP_CODE }}${{ github.event.inputs.environment }}001"
-            echo "REGISTRY=${ACR_NAME}.azurecr.io" >> $GITHUB_ENV
+            if [ -z "${{ github.event.inputs.acr_name }}" ]; then
+              echo "❌ You must provide acr_name when registry_type=acr."
+              exit 1
+            fi
+            echo "REGISTRY=${{ github.event.inputs.acr_name }}.azurecr.io" >> $GITHUB_ENV
           else
             echo "REGISTRY=ghcr.io/${{ github.repository_owner }}" >> $GITHUB_ENV
           fi
@@ -79,8 +87,8 @@ jobs:
         if: ${{ github.event.inputs.registry_type == 'acr' }}
         shell: bash
         run: |
-          echo "Logging into ACR: ${{ env.REGISTRY }}"
-          az acr login --name ${{ env.REGISTRY }}
+          echo "🔑 Logging into ACR: ${{ github.event.inputs.acr_name }}"
+          az acr login --name ${{ github.event.inputs.acr_name }}
 
       - name: Login to GHCR
         if: ${{ github.event.inputs.registry_type == 'ghcr' }}
@@ -96,7 +104,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          # dynamically build app folder
+          # dynamically build correct app folder
           context: ./workloads/${{ github.event.inputs.app_name }}
           file: ./workloads/${{ github.event.inputs.app_name }}/Dockerfile
           push: true
@@ -107,9 +115,10 @@ jobs:
         if: ${{ github.event.inputs.registry_type == 'acr' }}
         shell: bash
         run: |
+          echo "🔍 Verifying image in ACR..."
           az acr repository show \
-            --name "acr${{ env.APP_CODE }}${{ github.event.inputs.environment }}001" \
-            --image "${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}" \
+            --name "${{ github.event.inputs.acr_name }}" \
+            --image "${{ github.event.inputs.app_name }}:${{ github.event.inputs.image_tag }}" \
             --output table
 
       - name: Deployment Summary
@@ -118,6 +127,7 @@ jobs:
           echo "### ✅ Build & Push Complete" >> $GITHUB_STEP_SUMMARY
           echo "**Registry Type:** ${{ github.event.inputs.registry_type }}" >> $GITHUB_STEP_SUMMARY
           echo "**Registry URL:** ${{ env.REGISTRY }}" >> $GITHUB_STEP_SUMMARY
+          echo "**ACR Name:** ${{ github.event.inputs.acr_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**App Name:** ${{ github.event.inputs.app_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Tag:** ${{ github.event.inputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
