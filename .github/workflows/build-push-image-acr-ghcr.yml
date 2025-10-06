@@ -36,6 +36,12 @@ on:
         default: latest
         type: string
 
+      namespace:
+        description: Namespace (for GHCR only, e.g., poc, dev, prod)
+        required: false
+        default: poc
+        type: string
+
 permissions:
   contents: read
   id-token: write
@@ -121,7 +127,9 @@ jobs:
           file: ./workloads/${{ github.event.inputs.app_name }}/Dockerfile
           push: true
           tags: |
-            ${{ github.event.inputs.registry_type == 'acr' && format('{0}.azurecr.io/{1}:{2}', github.event.inputs.acr_name, github.event.inputs.app_name, github.event.inputs.image_tag) || format('ghcr.io/{0}/{1}:{2}', github.repository_owner, github.event.inputs.app_name, github.event.inputs.image_tag) }}
+            ${{ github.event.inputs.registry_type == 'acr' 
+              && format('{0}.azurecr.io/{1}:{2}', github.event.inputs.acr_name, github.event.inputs.app_name, github.event.inputs.image_tag) 
+              || format('ghcr.io/{0}/{1}/{2}:{3}', github.repository_owner, github.event.inputs.namespace, github.event.inputs.app_name, github.event.inputs.image_tag) }}
 
       - name: Verify Image (ACR only)
         if: ${{ github.event.inputs.registry_type == 'acr' }}
