@@ -25,7 +25,7 @@ on:
         options: [dev, staging, prod]
 
       app_name:
-        description: App folder name (e.g., solar-system)
+        description:  Your app folder name where the source code resides (e.g., solar-system)
         required: true
         default: solar-system
         type: string
